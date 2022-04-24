@@ -1,6 +1,8 @@
-from camera import Camera, deg_to_rad, hamilton_product, T_POINTS
+from typing import List
+from camera import Camera
 import numpy as np
 import pygame as pg
+from cuboid import Cuboid
 
 
 def main():
@@ -15,15 +17,28 @@ def main():
     screen = pg.display.set_mode((width, height))
     clock = pg.time.Clock()
     center = np.mat(dtype=np.double, data=[width / 2, height / 2]).T
-    scale = 3
+    scale = 300
 
-    points = [np.mat(dtype=np.double, data=[1, 1, 1]).T,
-              np.mat(dtype=np.double, data=[2, 1, 1]).T]
+    # points = [np.mat(dtype=np.double, data=[1, 1, 1]).T,
+    #           np.mat(dtype=np.double, data=[2, 1, 1]).T]
 
-    should_render = True
+    cuboids: List[Cuboid] = []
+    cube_1 = Cuboid([np.mat(dtype=np.double, data=[-1, -1, 1]).T,
+                     np.mat(dtype=np.double, data=[1, -1, 1]).T,
+                     np.mat(dtype=np.double, data=[1, 1, 1]).T,
+                     np.mat(dtype=np.double, data=[-1, 1, 1]).T,
+                     np.mat(dtype=np.double, data=[-1, -1, -1]).T,
+                     np.mat(dtype=np.double, data=[1, -1, -1]).T,
+                     np.mat(dtype=np.double, data=[1, 1, -1]).T,
+                     np.mat(dtype=np.double, data=[-1, 1, -1]).T])
+    cuboids.append(cube_1)
+
+    # should_render = True
+    first_time = True
 
     while True:
         clock.tick(60)
+        should_render = True
 
         for event in pg.event.get():
             if event.type == pg.QUIT:
@@ -33,32 +48,57 @@ def main():
                 if event.key == pg.K_ESCAPE:
                     pg.quit()
                     return
+                # elif event.key == pg.K_a:
+                #     cam.translate_x_neg()
+                # elif event.key == pg.K_d:
+                #     cam.translate_x_pos()
+                # should_render = True
+        keys = pg.key.get_pressed()
 
-        if should_render:
+        # suma = 0
+        # for key in keys:
+        #     suma += key
+        # print(suma)
+
+        if keys[pg.K_d] > 0:
+            cam.translate_x_neg()
+        elif keys[pg.K_a] > 0:
+            cam.translate_x_pos()
+        elif keys[pg.K_w] > 0:
+            cam.translate_y_pos()
+        elif keys[pg.K_s] > 0:
+            cam.translate_y_neg()
+        elif keys[pg.K_q] > 0:
+            cam.translate_z_pos()
+        elif keys[pg.K_e] > 0:
+            cam.translate_z_neg()
+        elif keys[pg.K_i] > 0:
+            cam.rotate_x_neg()
+        elif keys[pg.K_k] > 0:
+            cam.rotate_x_pos()
+        elif keys[pg.K_j] > 0:
+            cam.rotate_y_pos()
+        elif keys[pg.K_l] > 0:
+            cam.rotate_y_neg()
+        elif keys[pg.K_u] > 0:
+            cam.rotate_z_pos()
+        elif keys[pg.K_o] > 0:
+            cam.rotate_z_neg()
+        else:
+            should_render = False
+
+        if should_render or first_time:
+            first_time = False
             screen.fill(black)
-            projected_points = []
 
-            for point in points:
-                projected = cam.project_point(point)
-                projected = projected * scale + center
-                projected_points.append(projected)
-                pg.draw.circle(
-                    screen, yellow, (projected[0, 0], projected[1, 0], 3))
-
-            pg.draw.line(screen, white, (projected_points[0][0, 0], projected_points[0][1, 0]), (
-                projected_points[1][0, 0], projected_points[1][1, 0]))
-            pg.display.update()
+            for cuboid in cuboids:
+                lines = cuboid.to_list_of_lines(cam, scale, center)
+                for line in lines:
+                    # print(line)
+                    pg.draw.line(screen, white, line[0], line[1])
 
             # should_render = False
-
-            # l = [90, 45, 90]
-            # for i in range(3):
-            #     cam.angle[i, 0] = l[i]
-
-            # q = cam._euler_to_quaternion()
-            # cam.q = q
-            # cam.q_con = cam._quaternion_conjugate()
-            # print(q)
+            pg.display.update()
 
     # v = np.mat(dtype=np.double, data=[1, 0, 0, 1]).T
     # print(v)

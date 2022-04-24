@@ -1,19 +1,20 @@
 import numpy as np
 
 
-T_VAL = 0.2
+T_VAL = 0.1
 T_POINTS = np.matrix(dtype=np.double, data=np.array([[T_VAL, 0, 0, 1],
                                                      [-T_VAL, 0, 0, 1],
                                                      [0, T_VAL, 0, 1],
                                                      [0, -T_VAL, 0, 1],
                                                      [0, 0, T_VAL, 1],
                                                      [0, 0, -T_VAL, 1]])).T
-DIST = 0.5
+DIST = 0.1
+ANGLE_INCR = 1
 
 
 class Camera:
     def __init__(self):
-        self.point = np.mat(dtype=np.double, data=[0, 0, 0, 1]).T
+        self.point = np.mat(dtype=np.double, data=[0, 0, 10, 1]).T
         self.angle = np.mat(dtype=np.int16, data=[0, 0, 0]).T
         self.q = self._euler_to_quaternion()
         self.q_con = self._quaternion_conjugate()
@@ -40,13 +41,15 @@ class Camera:
 
     def _rotate_pos(self, i: int):
         current = self.angle[i, 0]
-        self.angle[i, 0] = current + 5 if current < 355 else 0
+        self.angle[i, 0] = current + \
+            ANGLE_INCR if current < 360 - ANGLE_INCR else 0
         self.q = self._euler_to_quaternion()
         self.q_con = self._quaternion_conjugate()
 
     def _rotate_neg(self, i: int):
         current = self.angle[i, 0]
-        self.angle[i, 0] = current - 5 if current > 0 else 355
+        self.angle[i, 0] = current - \
+            ANGLE_INCR if current > 0 else 360 - ANGLE_INCR
         self.q = self._euler_to_quaternion()
         self.q_con = self._quaternion_conjugate()
 
