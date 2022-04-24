@@ -8,6 +8,7 @@ T_POINTS = np.matrix(dtype=np.double, data=np.array([[T_VAL, 0, 0, 1],
                                                      [0, -T_VAL, 0, 1],
                                                      [0, 0, T_VAL, 1],
                                                      [0, 0, -T_VAL, 1]])).T
+DIST = 0.5
 
 
 class Camera:
@@ -16,6 +17,8 @@ class Camera:
         self.angle = np.mat(dtype=np.int16, data=[0, 0, 0]).T
         self.q = self._euler_to_quaternion()
         self.q_con = self._quaternion_conjugate()
+        self.fov = 90
+        self.scale = fov_to_scale(self.fov)
 
     def rotate_x_pos(self):
         self._rotate_pos(0)
@@ -71,7 +74,8 @@ class Camera:
         point_at_origin = subtract_points(point, self.point)
         rotated = self._rotate(point_at_origin)
 
-        return add_points(np.mat(dtype=np.double, data=[rotated[1, 0], rotated[2, 0], rotated[3, 0], 1]).T, self.point)
+        # return add_points(np.mat(dtype=np.double, data=[rotated[1, 0], rotated[2, 0], rotated[3, 0], 1]).T, self.point)
+        return np.mat(dtype=np.double, data=[rotated[1, 0], rotated[2, 0], rotated[3, 0], 1]).T
 
     def _rotate(self, point: np.matrix) -> np.matrix:
         q_p = np.mat(dtype=np.double, data=[
@@ -101,6 +105,29 @@ class Camera:
         self.point = add_points(self.point, np.mat(dtype=np.double, data=[
                                 rotated[1, 0], rotated[2, 0], rotated[3, 0], 1]).T)
 
+    def zoom_in(self):
+        fov = self.fov
+        if fov > 30:
+            self.fov = fov - 30
+            self.scale = fov_to_scale(self.fov)
+
+    def zoom_out(self):
+        fov = self.fov
+        if fov < 150:
+            self.fov = fov + 30
+            self.scale = fov_to_scale(self.fov)
+
+    def project_point(self, point: np.matrix) -> np.matrix:
+        rotated = self.rotate_point(point)
+        temp = 1 / (1 - DIST)
+        proj_mat = np.mat(dtype=np.double, data=[[self.scale, 0, 0, 0],
+                                                 [0, self.scale, 0, 0],
+                                                 [0, 0, temp, -DIST * temp],
+                                                 [0, 0, 1, 0]])
+        projected = proj_mat @ rotated
+
+        return (projected / projected[2, 0])[:2, 0]
+
 
 def deg_to_rad(deg: int):
     return deg / 180 * np.pi
@@ -124,3 +151,7 @@ def add_points(p1: np.matrix, p2: np.matrix) -> np.matrix:
 
 def subtract_points(p1: np.matrix, p2: np.matrix, ) -> np.matrix:
     return np.mat(dtype=np.double, data=[p1[0, 0] - p2[0, 0], p1[1, 0] - p2[1, 0], p1[2, 0] - p2[2, 0], 1]).T
+
+
+def fov_to_scale(fov: int) -> np.double:
+    return 1 / np.tan(deg_to_rad(fov / 2))
