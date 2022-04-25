@@ -13,15 +13,18 @@ class Cuboid:
 
         for point in self.points:
             projected = cam.project_point(point)
-            projected = projected * scale + center
-            projected_points.append(projected)
 
-        for i in range(4):
-            lines.append([(projected_points[i][0, 0], projected_points[i][1, 0]), (
-                projected_points[(i + 1) % 4][0, 0], projected_points[(i + 1) % 4][1, 0])])
-            lines.append([(projected_points[i + 4][0, 0], projected_points[i + 4][1, 0]),
-                         (projected_points[(i + 1) % 4 + 4][0, 0], projected_points[(i + 1) % 4 + 4][1, 0])])
-            lines.append([(projected_points[i][0, 0], projected_points[i][1, 0]),
-                         (projected_points[i + 4][0, 0], projected_points[i + 4][1, 0])])
+            if projected is not None:
+                projected = projected * scale + center
+                projected_points.append(projected)
+
+        if len(projected_points) >= 8:
+            for i in range(4):
+                lines.append([(projected_points[i][0, 0], projected_points[i][1, 0]), (
+                    projected_points[(i + 1) % 4][0, 0], projected_points[(i + 1) % 4][1, 0])])
+                lines.append([(projected_points[i + 4][0, 0], projected_points[i + 4][1, 0]),
+                              (projected_points[(i + 1) % 4 + 4][0, 0], projected_points[(i + 1) % 4 + 4][1, 0])])
+                lines.append([(projected_points[i][0, 0], projected_points[i][1, 0]),
+                              (projected_points[i + 4][0, 0], projected_points[i + 4][1, 0])])
 
         return lines

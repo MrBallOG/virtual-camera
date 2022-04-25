@@ -129,7 +129,12 @@ class Camera:
                                                  [0, 0, 1, 0]])
         projected = proj_mat @ rotated
 
-        return (projected / projected[2, 0])[:2, 0]
+        z = projected[2, 0]
+
+        if z > 0.00000000000001:
+            return None
+
+        return (projected / z)[:2, 0]
 
 
 def deg_to_rad(deg: int):
