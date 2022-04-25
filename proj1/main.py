@@ -34,11 +34,11 @@ def main():
     cuboids.append(cube_1)
 
     # should_render = True
-    first_time = True
+    # first_time = True
 
     while True:
         clock.tick(60)
-        should_render = True
+        # should_render = True
 
         for event in pg.event.get():
             if event.type == pg.QUIT:
@@ -48,6 +48,10 @@ def main():
                 if event.key == pg.K_ESCAPE:
                     pg.quit()
                     return
+                elif event.key == pg.K_z:
+                    cam.zoom_in()
+                elif event.key == pg.K_x:
+                    cam.zoom_out()
                 # elif event.key == pg.K_a:
                 #     cam.translate_x_neg()
                 # elif event.key == pg.K_d:
@@ -84,21 +88,21 @@ def main():
             cam.rotate_z_pos()
         elif keys[pg.K_o] > 0:
             cam.rotate_z_neg()
-        else:
-            should_render = False
+        # else:
+        #     should_render = False
 
-        if should_render or first_time:
-            first_time = False
-            screen.fill(black)
+        # if should_render or first_time:
+            # first_time = False
+        screen.fill(black)
 
-            for cuboid in cuboids:
-                lines = cuboid.to_list_of_lines(cam, scale, center)
-                for line in lines:
-                    # print(line)
-                    pg.draw.line(screen, white, line[0], line[1])
+        for cuboid in cuboids:
+            lines = cuboid.to_list_of_lines(cam, scale, center)
+            for line in lines:
+                # print(line)
+                pg.draw.line(screen, white, line[0], line[1])
 
             # should_render = False
-            pg.display.update()
+        pg.display.update()
 
     # v = np.mat(dtype=np.double, data=[1, 0, 0, 1]).T
     # print(v)

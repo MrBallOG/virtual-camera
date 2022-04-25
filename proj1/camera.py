@@ -18,7 +18,7 @@ class Camera:
         self.angle = np.mat(dtype=np.int16, data=[0, 0, 0]).T
         self.q = self._euler_to_quaternion()
         self.q_con = self._quaternion_conjugate()
-        self.fov = 90
+        self.fov = 30
         self.scale = fov_to_scale(self.fov)
 
     def rotate_x_pos(self):
@@ -110,14 +110,14 @@ class Camera:
 
     def zoom_in(self):
         fov = self.fov
-        if fov > 30:
-            self.fov = fov - 30
+        if fov > 20:
+            self.fov = fov - 10
             self.scale = fov_to_scale(self.fov)
 
     def zoom_out(self):
         fov = self.fov
-        if fov < 150:
-            self.fov = fov + 30
+        if fov < 100:
+            self.fov = fov + 10
             self.scale = fov_to_scale(self.fov)
 
     def project_point(self, point: np.matrix) -> np.matrix:
