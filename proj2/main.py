@@ -7,22 +7,19 @@ from cuboid import Cuboid
 
 def main():
     width, height = 1000, 800
+    center = np.mat(dtype=np.double, data=[width / 2, height / 2]).T
+    scale = 300
     black = (30, 30, 30)
     white = (255, 255, 255)
     yellow = (249, 215, 28)
     green = (0, 128, 0)
     colors = [white, yellow, green]
 
-    cam = Camera()
-    # pg.init()
-    # pg.display.set_caption("3d projection")
-    # screen = pg.display.set_mode((width, height))
-    # clock = pg.time.Clock()
-    # center = np.mat(dtype=np.double, data=[width / 2, height / 2]).T
-    # scale = 300
-
-    # points = [np.mat(dtype=np.double, data=[1, 1, 1]).T,
-    #           np.mat(dtype=np.double, data=[2, 1, 1]).T]
+    cam = Camera(scale, center)
+    pg.init()
+    pg.display.set_caption("3d projection")
+    screen = pg.display.set_mode((width, height))
+    clock = pg.time.Clock()
 
     cuboids: List[Cuboid] = []
     cube_1 = Cuboid([np.mat(dtype=np.double, data=[-1, -1, 1]).T,
@@ -48,11 +45,14 @@ def main():
     # first_time = True
 
     # cam.angle = np.mat(data=[90, 45, 90]).T
-    print(np.round(cam.get_transform(), decimals=2))
-    p = cam.project_point(np.mat(dtype=np.double, data=[-1, -1, 1, 1]).T)
-    print(np.round(p, decimals=2))
+    # print(np.round(cam.get_transform(), decimals=2))
+    # cam.transform = cam.get_transform()
+    # p = cam.project_point(np.mat(dtype=np.double, data=[-1, -1, 1]).T)
+    # print(np.round(p, decimals=2))
+    # print("----")
+    # cam.translate_x_pos()
 
-    while False:
+    while True:
         clock.tick(60)
         # should_render = True
 
@@ -112,7 +112,7 @@ def main():
         screen.fill(black)
 
         for i, cuboid in enumerate(cuboids):
-            lines = cuboid.to_list_of_lines(cam, scale, center)
+            lines = cuboid.to_list_of_lines(cam)
             for line in lines:
                 # print(line)
                 pg.draw.line(screen, colors[i], line[0], line[1])

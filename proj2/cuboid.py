@@ -7,7 +7,7 @@ class Cuboid:
     def __init__(self, points: List[np.matrix]):
         self.points = points
 
-    def to_list_of_lines(self, cam: Camera, scale: int, center: np.matrix) -> List[List[Tuple[int, int]]]:
+    def to_list_of_lines(self, cam: Camera) -> List[List[Tuple[int, int]]]:
         projected_points = []
         lines = []
 
@@ -15,7 +15,6 @@ class Cuboid:
             projected = cam.project_point(point)
 
             if projected is not None:
-                projected = projected * scale + center
                 projected_points.append(projected)
 
         if len(projected_points) >= 8:
