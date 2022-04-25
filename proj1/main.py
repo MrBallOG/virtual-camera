@@ -10,6 +10,8 @@ def main():
     black = (30, 30, 30)
     white = (255, 255, 255)
     yellow = (249, 215, 28)
+    green = (0, 128, 0)
+    colors = [white, yellow, green]
 
     cam = Camera()
     pg.init()
@@ -31,7 +33,16 @@ def main():
                      np.mat(dtype=np.double, data=[1, -1, -1]).T,
                      np.mat(dtype=np.double, data=[1, 1, -1]).T,
                      np.mat(dtype=np.double, data=[-1, 1, -1]).T])
+    cube_2 = Cuboid([np.mat(dtype=np.double, data=[-1, -1, 1-5]).T,
+                     np.mat(dtype=np.double, data=[1, -1, 1-5]).T,
+                     np.mat(dtype=np.double, data=[1, 1, 1-5]).T,
+                     np.mat(dtype=np.double, data=[-1, 1, 1-5]).T,
+                     np.mat(dtype=np.double, data=[-1, -1, -1-5]).T,
+                     np.mat(dtype=np.double, data=[1, -1, -1-5]).T,
+                     np.mat(dtype=np.double, data=[1, 1, -1-5]).T,
+                     np.mat(dtype=np.double, data=[-1, 1, -1-5]).T])
     cuboids.append(cube_1)
+    cuboids.append(cube_2)
 
     # should_render = True
     # first_time = True
@@ -95,11 +106,11 @@ def main():
             # first_time = False
         screen.fill(black)
 
-        for cuboid in cuboids:
+        for i, cuboid in enumerate(cuboids):
             lines = cuboid.to_list_of_lines(cam, scale, center)
             for line in lines:
                 # print(line)
-                pg.draw.line(screen, white, line[0], line[1])
+                pg.draw.line(screen, colors[i], line[0], line[1])
 
             # should_render = False
         pg.display.update()
