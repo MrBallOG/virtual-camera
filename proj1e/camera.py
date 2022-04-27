@@ -10,99 +10,80 @@ T_POINTS = np.matrix(dtype=np.double, data=np.array([[T_VAL, 0, 0, 1],
                                                      [0, 0, -T_VAL, 1]])).T
 DIST = 0.1
 ANGLE_INCR = 1
+ANGLE_INCR2 = 1/180 * np.pi
 
 
 class Camera:
     def __init__(self):
         self.point = np.mat(dtype=np.double, data=[0, 0, 10, 1]).T
-        self.angle = np.mat(dtype=np.int16, data=[0, 0, 0]).T
-        # self.q = self._euler_to_quaternion()
-        # self.q_con = self._quaternion_conjugate()
+        self.R = np.mat(dtype=np.int16, data=[[1, 0, 0, 0],
+                                              [0, 1, 0, 0],
+                                              [0, 0, 1, 0],
+                                              [0, 0, 0, 1]])
         self.fov = 30
         self.scale = fov_to_scale(self.fov)
 
     def rotate_x_pos(self):
-        self._rotate_pos(0)
+        self._rotate_x(1)
 
     def rotate_x_neg(self):
-        self._rotate_neg(0)
+        self._rotate_x(-1)
 
     def rotate_y_pos(self):
-        self._rotate_pos(1)
+        self._rotate_y(1)
 
     def rotate_y_neg(self):
-        self._rotate_neg(1)
+        self._rotate_y(-1)
 
     def rotate_z_pos(self):
-        self._rotate_pos(2)
+        self._rotate_z(1)
 
     def rotate_z_neg(self):
-        self._rotate_neg(2)
+        self._rotate_z(-1)
 
-    def _rotate_pos(self, i: int):
-        # current = self.angle[i, 0]
-        self.angle[i, 0] += ANGLE_INCR
-        # self.q = self._euler_to_quaternion()
-        # self.q_con = self._quaternion_conjugate()
+    def _rotate_x(self, i):
+        cos = np.cos(i * ANGLE_INCR2)
+        sin = np.sin(i * ANGLE_INCR2)
 
-    def _rotate_neg(self, i: int):
-        # current = self.angle[i, 0]
-        self.angle[i, 0] -= ANGLE_INCR
-        # self.q = self._euler_to_quaternion()
-        # self.q_con = self._quaternion_conjugate()
+        r_x = np.matrix(dtype=np.double, data=[[1, 0, 0, 0],
+                                               [0, cos, sin, 0],
+                                               [0, -sin, cos, 0],
+                                               [0, 0, 0, 1]])
+        self.R = r_x * self.R
 
-    def _euler_to_quaternion(self) -> np.matrix:
-        phi, theta, psi = deg_to_rad(self.angle)
+    def _rotate_y(self, i):
+        cos = np.cos(i * ANGLE_INCR2)
+        sin = np.sin(i * ANGLE_INCR2)
 
-        cos_phi = np.cos(phi / 2)
-        sin_phi = np.sin(phi / 2)
-        cos_theta = np.cos(theta / 2)
-        sin_theta = np.sin(theta / 2)
-        cos_psi = np.cos(psi / 2)
-        sin_psi = np.sin(psi / 2)
+        r_y = np.matrix(dtype=np.double, data=[[cos, 0, -sin, 0],
+                                               [0, 1, 0, 0],
+                                               [sin, 0, cos, 0],
+                                               [0, 0, 0, 1]])
 
-        w = cos_phi * cos_theta * cos_psi + sin_phi * sin_theta * sin_psi
-        x = sin_phi * cos_theta * cos_psi - cos_phi * sin_theta * sin_psi
-        y = cos_phi * sin_theta * cos_psi + sin_phi * cos_theta * sin_psi
-        z = cos_phi * cos_theta * sin_psi - sin_phi * sin_theta * cos_psi
+        self.R = r_y * self.R
 
-        return np.mat(dtype=np.double, data=[w[0, 0], x[0, 0], y[0, 0], z[0, 0]]).T
+    def _rotate_z(self, i):
+        cos = np.cos(i * ANGLE_INCR2)
+        sin = np.sin(i * ANGLE_INCR2)
 
-    def _quaternion_conjugate(self) -> np.matrix:
-        return np.mat(dtype=np.double, data=[self.q[0, 0], -self.q[1, 0], -self.q[2, 0], -self.q[3, 0]]).T
+        r_z = np.matrix(dtype=np.double, data=[[cos, sin, 0, 0],
+                                               [-sin, cos, 0, 0],
+                                               [0, 0, 1, 0],
+                                               [0, 0, 0, 1]])
+        self.R = r_z * self.R
 
     def rotate_point(self, point: np.matrix) -> np.matrix:
         point_at_origin = subtract_points(point, self.point)
         return self._rotate(point_at_origin)
 
-        # return add_points(np.mat(dtype=np.double, data=[rotated[1, 0], rotated[2, 0], rotated[3, 0], 1]).T, self.point)
-        # return np.mat(dtype=np.double, data=[rotated[1, 0], rotated[2, 0], rotated[3, 0], 1]).T
-
     def _rotate(self, point: np.matrix) -> np.matrix:
-        phi, theta, psi = deg_to_rad(self.angle)
-        cos_phi = np.cos(phi)
-        sin_phi = np.sin(phi)
-        cos_theta = np.cos(theta)
-        sin_theta = np.sin(theta)
-        cos_psi = np.cos(psi)
-        sin_psi = np.sin(psi)
+        return self.R * point
 
-        r_x = np.matrix(dtype=np.double, data=[[1, 0, 0, 0],
-                                               [0, cos_phi, sin_phi, 0],
-                                               [0, -sin_phi, cos_phi, 0],
-                                               [0, 0, 0, 1]])
-        r_y = np.matrix(dtype=np.double, data=[[cos_theta, 0, -sin_theta, 0],
-                                               [0, 1, 0, 0],
-                                               [sin_theta, 0,
-                                                cos_theta, 0],
-                                               [0, 0, 0, 1]])
+    def _rotate2(self, point: np.matrix) -> np.matrix:
+        rot = self.R.copy()
+        rot_inv = np.linalg.inv(rot)
 
-        r_z = np.matrix(dtype=np.double, data=[[cos_psi, sin_psi, 0, 0],
-                                               [-sin_psi, cos_psi, 0, 0],
-                                               [0, 0, 1, 0],
-                                               [0, 0, 0, 1]])
-
-        return r_x @ r_y @ r_z @ point
+        return rot_inv * point
 
     def translate_x_pos(self):
         self._translate(0)
@@ -123,8 +104,7 @@ class Camera:
         self._translate(5)
 
     def _translate(self, i: int):
-        rotated = self._rotate(T_POINTS[:, i])
-        print(np.round(rotated, decimals=2))
+        rotated = self._rotate2(T_POINTS[:, i])
         self.point = add_points(self.point, rotated)
 
     def zoom_in(self):
@@ -146,30 +126,17 @@ class Camera:
                                                  [0, self.scale, 0, 0],
                                                  [0, 0, temp, -DIST * temp],
                                                  [0, 0, 1, 0]])
-        projected = proj_mat @ rotated
+        projected = proj_mat * rotated
+        w = projected[3, 0]
 
-        z = projected[3, 0]
-
-        if z > 0.00000000000001:
+        if w > 0.00000000000001:
             return None
 
-        return (projected / z)[:2, 0]
+        return (projected / w)[:2, 0]
 
 
 def deg_to_rad(deg: int):
     return deg / 180 * np.pi
-
-
-def hamilton_product(q1: np.matrix, q2: np.matrix):
-    w1, x1, y1, z1 = q1
-    w2, x2, y2, z2 = q2
-
-    w = w1 * w2 - x1 * x2 - y1 * y2 - z1 * z2
-    x = w1 * x2 + x1 * w2 + y1 * z2 - z1 * y2
-    y = w1 * y2 + y1 * w2 + z1 * x2 - x1 * z2
-    z = w1 * z2 + z1 * w2 + x1 * y2 - y1 * x2
-
-    return np.mat(dtype=np.double, data=[w[0, 0], x[0, 0], y[0, 0], z[0, 0]]).T
 
 
 def add_points(p1: np.matrix, p2: np.matrix) -> np.matrix:
