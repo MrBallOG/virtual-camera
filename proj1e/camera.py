@@ -9,8 +9,7 @@ T_POINTS = np.matrix(dtype=np.double, data=np.array([[T_VAL, 0, 0, 1],
                                                      [0, 0, T_VAL, 1],
                                                      [0, 0, -T_VAL, 1]])).T
 DIST = 0.1
-ANGLE_INCR = 1
-ANGLE_INCR2 = 1/180 * np.pi
+ANGLE_INCR = 1/180 * np.pi
 
 
 class Camera:
@@ -42,9 +41,8 @@ class Camera:
         self._rotate_z(-1)
 
     def _rotate_x(self, i):
-        cos = np.cos(i * ANGLE_INCR2)
-        sin = np.sin(i * ANGLE_INCR2)
-
+        cos = np.cos(i * ANGLE_INCR)
+        sin = np.sin(i * ANGLE_INCR)
         r_x = np.matrix(dtype=np.double, data=[[1, 0, 0, 0],
                                                [0, cos, sin, 0],
                                                [0, -sin, cos, 0],
@@ -52,34 +50,31 @@ class Camera:
         self.R = r_x * self.R
 
     def _rotate_y(self, i):
-        cos = np.cos(i * ANGLE_INCR2)
-        sin = np.sin(i * ANGLE_INCR2)
-
+        cos = np.cos(i * ANGLE_INCR)
+        sin = np.sin(i * ANGLE_INCR)
         r_y = np.matrix(dtype=np.double, data=[[cos, 0, -sin, 0],
                                                [0, 1, 0, 0],
                                                [sin, 0, cos, 0],
                                                [0, 0, 0, 1]])
-
         self.R = r_y * self.R
 
     def _rotate_z(self, i):
-        cos = np.cos(i * ANGLE_INCR2)
-        sin = np.sin(i * ANGLE_INCR2)
-
+        cos = np.cos(i * ANGLE_INCR)
+        sin = np.sin(i * ANGLE_INCR)
         r_z = np.matrix(dtype=np.double, data=[[cos, sin, 0, 0],
                                                [-sin, cos, 0, 0],
                                                [0, 0, 1, 0],
                                                [0, 0, 0, 1]])
         self.R = r_z * self.R
 
-    def rotate_point(self, point: np.matrix) -> np.matrix:
+    def _rotate_point(self, point: np.matrix) -> np.matrix:
         point_at_origin = subtract_points(point, self.point)
-        return self._rotate(point_at_origin)
+        return self._rotate_world_to_cam(point_at_origin)
 
-    def _rotate(self, point: np.matrix) -> np.matrix:
+    def _rotate_world_to_cam(self, point: np.matrix) -> np.matrix:
         return self.R * point
 
-    def _rotate2(self, point: np.matrix) -> np.matrix:
+    def _rotate_cam_to_world(self, point: np.matrix) -> np.matrix:
         rot = self.R.copy()
         rot_inv = np.linalg.inv(rot)
 
@@ -104,7 +99,7 @@ class Camera:
         self._translate(5)
 
     def _translate(self, i: int):
-        rotated = self._rotate2(T_POINTS[:, i])
+        rotated = self._rotate_cam_to_world(T_POINTS[:, i])
         self.point = add_points(self.point, rotated)
 
     def zoom_in(self):
@@ -120,7 +115,7 @@ class Camera:
             self.scale = fov_to_scale(self.fov)
 
     def project_point(self, point: np.matrix) -> np.matrix:
-        rotated = self.rotate_point(point)
+        rotated = self._rotate_point(point)
         temp = 1 / (1 - DIST)
         proj_mat = np.mat(dtype=np.double, data=[[self.scale, 0, 0, 0],
                                                  [0, self.scale, 0, 0],
