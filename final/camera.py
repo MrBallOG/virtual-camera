@@ -14,13 +14,15 @@ ANGLE_INCR = 1/180 * np.pi
 
 class Camera:
     def __init__(self):
-        self.point = np.mat(dtype=np.double, data=[0, 0, 10, 1]).T
-        self.R = np.mat(dtype=np.int16, data=[[1, 0, 0, 0],
-                                              [0, 1, 0, 0],
-                                              [0, 0, 1, 0],
-                                              [0, 0, 0, 1]])
+        self.point = np.mat(dtype=np.double, data=[0, 0, 15, 1]).T
+        self.rotation_matrix = np.mat(dtype=np.double, data=[[1, 0, 0, 0],
+                                                             [0, 1, 0, 0],
+                                                             [0, 0, 1, 0],
+                                                             [0, 0, 0, 1]])
+        self.rotation_matrix_inverse = self.rotation_matrix.copy()
         self.fov = 30
         self.scale = fov_to_scale(self.fov)
+        self.projection_matrix = self._get_projection_matrix()
 
     def rotate_x_pos(self):
         self._rotate_x(1)
@@ -47,7 +49,8 @@ class Camera:
                                                [0, cos, sin, 0],
                                                [0, -sin, cos, 0],
                                                [0, 0, 0, 1]])
-        self.R = r_x * self.R
+        self.rotation_matrix = r_x * self.rotation_matrix
+        self.rotation_matrix_inverse = inverse_matrix(self.rotation_matrix)
 
     def _rotate_y(self, i):
         cos = np.cos(i * ANGLE_INCR)
@@ -56,7 +59,8 @@ class Camera:
                                                [0, 1, 0, 0],
                                                [sin, 0, cos, 0],
                                                [0, 0, 0, 1]])
-        self.R = r_y * self.R
+        self.rotation_matrix = r_y * self.rotation_matrix
+        self.rotation_matrix_inverse = inverse_matrix(self.rotation_matrix)
 
     def _rotate_z(self, i):
         cos = np.cos(i * ANGLE_INCR)
@@ -65,20 +69,18 @@ class Camera:
                                                [-sin, cos, 0, 0],
                                                [0, 0, 1, 0],
                                                [0, 0, 0, 1]])
-        self.R = r_z * self.R
+        self.rotation_matrix = r_z * self.rotation_matrix
+        self.rotation_matrix_inverse = inverse_matrix(self.rotation_matrix)
 
-    def _rotate_point(self, point: np.matrix) -> np.matrix:
+    def _transform_world_to_cam(self, point: np.matrix) -> np.matrix:
         point_at_origin = subtract_points(point, self.point)
         return self._rotate_world_to_cam(point_at_origin)
 
     def _rotate_world_to_cam(self, point: np.matrix) -> np.matrix:
-        return self.R * point
+        return self.rotation_matrix * point
 
     def _rotate_cam_to_world(self, point: np.matrix) -> np.matrix:
-        rot = self.R.copy()
-        rot_inv = np.linalg.inv(rot)
-
-        return rot_inv * point
+        return self.rotation_matrix_inverse * point
 
     def translate_x_pos(self):
         self._translate(0)
@@ -107,21 +109,25 @@ class Camera:
         if fov > 20:
             self.fov = fov - 10
             self.scale = fov_to_scale(self.fov)
+            self.projection_matrix = self._get_projection_matrix()
 
     def zoom_out(self):
         fov = self.fov
         if fov < 100:
             self.fov = fov + 10
             self.scale = fov_to_scale(self.fov)
+            self.projection_matrix = self._get_projection_matrix()
+
+    def _get_projection_matrix(self):
+        temp = 1 / (1 - DIST)
+        return np.mat(dtype=np.double, data=[[self.scale, 0, 0, 0],
+                                             [0, self.scale, 0, 0],
+                                             [0, 0, temp, -DIST * temp],
+                                             [0, 0, 1, 0]])
 
     def project_point(self, point: np.matrix) -> np.matrix:
-        rotated = self._rotate_point(point)
-        temp = 1 / (1 - DIST)
-        proj_mat = np.mat(dtype=np.double, data=[[self.scale, 0, 0, 0],
-                                                 [0, self.scale, 0, 0],
-                                                 [0, 0, temp, -DIST * temp],
-                                                 [0, 0, 1, 0]])
-        projected = proj_mat * rotated
+        rotated = self._transform_world_to_cam(point)
+        projected = self.projection_matrix * rotated
         w = projected[3, 0]
 
         if w > 0.00000000000001:
@@ -144,3 +150,7 @@ def subtract_points(p1: np.matrix, p2: np.matrix, ) -> np.matrix:
 
 def fov_to_scale(fov: int) -> np.double:
     return 1 / np.tan(deg_to_rad(fov / 2))
+
+
+def inverse_matrix(m: np.matrix):
+    return np.linalg.inv(m)

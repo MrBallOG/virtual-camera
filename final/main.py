@@ -11,7 +11,8 @@ def main():
     white = (255, 255, 255)
     yellow = (249, 215, 28)
     green = (0, 128, 0)
-    colors = [white, yellow, green]
+    red = (237, 28, 36)
+    colors = [white, yellow, green, red]
 
     cam = Camera()
     pg.init()
@@ -21,7 +22,6 @@ def main():
     center = np.mat(dtype=np.double, data=[width / 2, height / 2]).T
     scale = 300
 
-    cuboids: List[Cuboid] = []
     cube_1 = Cuboid([np.mat(dtype=np.double, data=[-1, -1, 1]).T,
                      np.mat(dtype=np.double, data=[1, -1, 1]).T,
                      np.mat(dtype=np.double, data=[1, 1, 1]).T,
@@ -38,8 +38,23 @@ def main():
                      np.mat(dtype=np.double, data=[1, -1, -1-5]).T,
                      np.mat(dtype=np.double, data=[1, 1, -1-5]).T,
                      np.mat(dtype=np.double, data=[-1, 1, -1-5]).T])
-    cuboids.append(cube_1)
-    cuboids.append(cube_2)
+    cube_3 = Cuboid([np.mat(dtype=np.double, data=[-1-6, -1, 1-5]).T,
+                     np.mat(dtype=np.double, data=[1-6, -1, 1-5]).T,
+                     np.mat(dtype=np.double, data=[1-6, 1+2, 1-5]).T,
+                     np.mat(dtype=np.double, data=[-1-6, 1+2, 1-5]).T,
+                     np.mat(dtype=np.double, data=[-1-6, -1, -1-5]).T,
+                     np.mat(dtype=np.double, data=[1-6, -1, -1-5]).T,
+                     np.mat(dtype=np.double, data=[1-6, 1+2, -1-5]).T,
+                     np.mat(dtype=np.double, data=[-1-6, 1+2, -1-5]).T])
+    cube_4 = Cuboid([np.mat(dtype=np.double, data=[-1-6, -1, 1+3]).T,
+                     np.mat(dtype=np.double, data=[1-6, -1, 1+3]).T,
+                     np.mat(dtype=np.double, data=[1-6, 1+4, 1+3]).T,
+                     np.mat(dtype=np.double, data=[-1-6, 1+4, 1+3]).T,
+                     np.mat(dtype=np.double, data=[-1-6, -1, -1]).T,
+                     np.mat(dtype=np.double, data=[1-6, -1, -1]).T,
+                     np.mat(dtype=np.double, data=[1-6, 1+4, - 1]).T,
+                     np.mat(dtype=np.double, data=[-1-6, 1+4, -1]).T])
+    cuboids: List[Cuboid] = [cube_1, cube_2, cube_3, cube_4]
 
     first_time = True
 
